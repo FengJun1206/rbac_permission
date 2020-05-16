@@ -1,15 +1,27 @@
 from django.db import models
 
 
+class Menu(models.Model):
+    """
+    菜单表
+    """
+    title = models.CharField(max_length=32, unique=True, verbose_name='菜单名称')
+    icon = models.CharField(verbose_name='菜单图标', max_length=32)
+
+    def __str__(self):
+        return self.title
+
+
 class Permission(models.Model):
     """
     权限表
     """
     title = models.CharField(verbose_name='标题', max_length=32)
     url = models.CharField(verbose_name='含正则的URL', max_length=128)
+    name = models.CharField(verbose_name='URL别名', max_length=32, null=True, blank=True)
 
-    is_menu = models.BooleanField(verbose_name='是否是菜单', default=False)
-    icon = models.CharField(max_length=32, verbose_name='菜单图标', blank=True, null=True)
+    parent = models.ForeignKey(verbose_name='父权限', to='Permission', null=True, blank=True, on_delete=models.CASCADE)
+    menu = models.ForeignKey(verbose_name='菜单', to='Menu', null=True, blank=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title

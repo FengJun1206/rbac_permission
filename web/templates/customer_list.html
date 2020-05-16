@@ -1,12 +1,16 @@
 {% extends 'layout.html' %}
+{% load rbac %}
 
 {% block content %}
 
     <div class="luffy-container">
         <div class="btn-group" style="margin: 5px 0">
-            <a class="btn btn-default" href="/customer/add/">
-                <i class="fa fa-plus-square" aria-hidden="true"></i> 添加客户
-            </a>
+            {% if request|has_permission:'customer_add' %}
+                <a class="btn btn-default" href="{% url 'customer_add' %}">
+                    <i class="fa fa-plus-square" aria-hidden="true"></i> 添加客户
+                </a>
+            {% endif %}
+
             <a class="btn btn-default" href="/customer/import/">
                 <i class="fa fa-file-excel-o" aria-hidden="true"></i> 批量导入
             </a>

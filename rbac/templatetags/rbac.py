@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from django.template import Library
 from django.conf import settings
 import re
@@ -12,13 +14,39 @@ def menu(request):
     :param request:
     :return:
     """
-    menu_list = request.session.get(settings.MENU_SESSION_KEY)
+    menu_dict = request.session.get(settings.MENU_SESSION_KEY)
+    """
+    {'2': {'title': '客户管理', 'icon': 'fa-clipboard', 
+    'children': [{'id': 1, 'title': '客户列表', 'url': '/customer/list/'}]}}
+    """
 
-    for item in menu_list:
-        reg = "^%s$" % item['url']
+    ordered_dict = OrderedDict()
+    for item in sorted(menu_dict):
+        ordered_dict[item] = menu_dict[item]
+        menu_dict[item]['class'] = 'hide'
 
-        # 给当前选中菜单添加选中样式
-        if re.match(reg, request.path_info):
-            item['class'] = 'active'  # 添加一个新的 class 熟悉
+        for node in menu_dict[item]['children']:
+            if request.current_menu_id == node['id']:
+                node['class'] = 'active'
+                menu_dict[item]['class'] = ''
 
-    return {'menu_list': menu_list}
+    """
+    {'2': {'title': '客户管理', 'icon': 'fa-clipboard', 'children':
+     [{'id': 1, 'title': '客户列表', 'url': '/customer/list/', 'class': 'active'}], 'class': ''}}
+    """
+    return {'menu_dict': ordered_dict}
+
+
+@register.inclusion_tag('rbac/breadcrumb.html')
+def breadcrumb(request):
+    """面包屑导航"""
+
+    return {'breadcrumb_list': request.breadcrumb_list}
+
+
+@register.filter
+def has_permission(request, name):
+    """是否有权限"""
+    permission_dict = request.session.get(settings.PERMISSION_SESSION_KEY)
+    if name in permission_dict:
+        return True
